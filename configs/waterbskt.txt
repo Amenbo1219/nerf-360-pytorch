@@ -1,6 +1,6 @@
-expname = sakura-360
+expname = waterbskt-tape-360-3frame
 basedir = ./logs
-datadir = ./data/sakura-360
+datadir = ./data/waterbskt-tape-360-3frame
 dataset_type = blender
 
 no_batching = True

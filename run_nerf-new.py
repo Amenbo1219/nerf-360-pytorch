@@ -12,7 +12,7 @@ from tqdm import tqdm, trange
 
 import matplotlib.pyplot as plt
 
-from run_nerf_helpers import *
+from run_nerf_helpers_new import *
 
 from load_llff import load_llff_data
 from load_deepvoxels import load_dv_data
@@ -95,7 +95,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     """
     if c2w is not None:
         # special case to render full image
-        rays_o, rays_d = get_rays(H, W, K, c2w)
+        rays_o, rays_d = get_rays_sp(H, W, K, c2w)
     else:
         # use provided ray batch
         rays_o, rays_d = rays
@@ -105,7 +105,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
         viewdirs = rays_d
         if c2w_staticcam is not None:
             # special case to visualize effect of viewdirs
-            rays_o, rays_d = get_rays(H, W, K, c2w_staticcam)
+            rays_o, rays_d = get_rays_sp(H, W, K, c2w_staticcam)
         viewdirs = viewdirs / torch.norm(viewdirs, dim=-1, keepdim=True)
         viewdirs = torch.reshape(viewdirs, [-1,3]).float()
 
@@ -120,7 +120,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
 
     near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
     rays = torch.cat([rays_o, rays_d, near, far], -1)
-    save_tensor_to_npz(rays,"rays_all_info")
+    # save_tensor_to_npz(rays,"rays_all_info")
     if use_viewdirs:
         rays = torch.cat([rays, viewdirs], -1)
 
@@ -725,7 +725,7 @@ def train():
     if use_batching:
         # For random ray batching
         print('get rays')
-        rays = np.stack([get_rays_np(H, W, K, p) for p in poses[:,:3,:4]], 0) # [N, ro+rd, H, W, 3]
+        rays = np.stack([get_rays_np_sp(H, W, K, p) for p in poses[:,:3,:4]], 0) # [N, ro+rd, H, W, 3]
         print('done, concats')
         rays_rgb = np.concatenate([rays, images[:,None]], 1) # [N, ro+rd+rgb, H, W, 3]
         rays_rgb = np.transpose(rays_rgb, [0,2,3,1,4]) # [N, H, W, ro+rd+rgb, 3]
@@ -745,10 +745,11 @@ def train():
     if use_batching:
         rays_rgb = torch.Tensor(rays_rgb).to(device)
 
-    N_iters = 1000 + 1
+    # N_iters = 10000 + 1
+
     # N_iters = 200000 + 1
     # N_iters = 100000 + 1
-    # N_iters = 1000000 + 1
+    N_iters = 1000000 + 1
 
     print('Begin')
     print('TRAIN views are', i_train)
@@ -784,7 +785,7 @@ def train():
             pose = poses[img_i, :3,:4]
 
             if N_rand is not None:
-                rays_o, rays_d = get_rays(H, W, K, torch.Tensor(pose))  # (H, W, 3), (H, W, 3)
+                rays_o, rays_d = get_rays_sp(H, W, K, torch.Tensor(pose))  # (H, W, 3), (H, W, 3)
                 # print(H,W,K)
                 if i < args.precrop_iters:
                     dH = int(H//2 * args.precrop_frac)
