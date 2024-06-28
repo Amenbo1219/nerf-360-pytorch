@@ -1,6 +1,6 @@
-expname = TUT-out-hikage-360v2-roll
+expname = TUT-out-doll-360v2-addr-spv2
 basedir = ./logs
-datadir = ./data/outdoor/hikage-table
+datadir = ./data/outdoor-addr/out-table
 dataset_type = synth360
 
 factor = 8

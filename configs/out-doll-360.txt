@@ -1,4 +1,4 @@
-expname = TUT-out-doll-360v2
+expname = TUT-out-doll-360-not-add
 basedir = ./logs
 datadir = ./data/outdoor/out-table
 dataset_type = synth360

@@ -166,8 +166,8 @@ def get_rays_sp(H, W, K, c2w):
     i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
-    phi = (i/W-1/2)*torch.pi # del360-v2
-    theta = (j/H-1/2)*torch.pi # del360-v2
+    phi = (i/W-1/2)*2*torch.pi # del360-v2
+    theta = (j/H-1/2)*2*torch.pi # del360-v2
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
     dirs = torch.stack([phi,theta, -torch.ones_like(i)], -1) # del360-v3
 
@@ -184,8 +184,8 @@ def get_rays_sp(H, W, K, c2w):
 
 def get_rays_np_sp(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
-    phi = (i/W-1/2)*np.pi # del360-v2
-    theta = (j/H-1/2)*np.pi # del360-v2
+    phi = (i/W-1/2)*2*np.pi # del360-v2
+    theta = (j/H-1/2)*2*np.pi # del360-v2
     
     # dirs = np.stack([np.cos(phi),-np.cos(theta)*np.sin(phi), -np.cos(theta)*np.sin(phi)], -1) # del360-v2
     dirs = np.stack([phi,theta, -np.ones_like(i)], -1) # del360-v3
