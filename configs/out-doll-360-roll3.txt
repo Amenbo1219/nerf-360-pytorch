@@ -1,6 +1,6 @@
-expname = TUT-out-doll-360v2-roll
+expname = TUT-out-doll-360v2-rollv3
 basedir = ./log
-datadir = ./data/outdoor/out-table
+datadir = data/outdoor/out-table
 dataset_type = synth360
 
 factor = 8

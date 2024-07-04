@@ -871,15 +871,15 @@ def train():
             moviebase = os.path.join(basedir, expname, '{}_spiral_{:06d}_'.format(expname, i))
             imageio.mimwrite(moviebase + 'rgb.mp4', to8b(rgbs), fps=30, quality=8)
             imageio.mimwrite(moviebase + 'disp.mp4', to8b(disps / np.max(disps)), fps=30, quality=8)
-            save_tensor_to_npz(rays_o,f'{basedir}/{expname}/{i}_ray_o')
-            save_tensor_to_npz(rays_d,f'{basedir}/{expname}/{i}_ray_d')
-            save_tensor_to_npz(batch_rays,f'{basedir}/{expname}/{i}_batch_rays')
-            save_tensor_to_npz(coords,f'{basedir}/{expname}/{i}_coords')
-            save_tensor_to_npz(target_s,f'{basedir}/{expname}/{i}_target_s')
+            # save_tensor_to_npz(rays_o,f'{basedir}/{expname}/{i}_ray_o')
+            # save_tensor_to_npz(rays_d,f'{basedir}/{expname}/{i}_ray_d')
+            # save_tensor_to_npz(batch_rays,f'{basedir}/{expname}/{i}_batch_rays')
+            # save_tensor_to_npz(coords,f'{basedir}/{expname}/{i}_coords')
+            # save_tensor_to_npz(target_s,f'{basedir}/{expname}/{i}_target_s')
             print(f"extras:{extras}")
-            save_tensor_to_npz(extras['raw'],f'{basedir}/{expname}/{i}_extras')
+            # save_tensor_to_npz(extras['raw'],f'{basedir}/{expname}/{i}_extras')
             # save_tensor_to_npz(extras,f'{basedir}/{expname}/{i}_extras')
-            save_tensor_to_npz(rgb,f'{basedir}/{expname}/{i}_rgb')
+            # save_tensor_to_npz(rgb,f'{basedir}/{expname}/{i}_rgb')
             if args.use_viewdirs:
                 render_kwargs_test['c2w_staticcam'] = render_poses[0][:3,:4]
                 with torch.no_grad():

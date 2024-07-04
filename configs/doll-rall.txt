@@ -1,7 +1,7 @@
-expname = fern_test
-basedir = logs
-datadir = data/nerf_llff_data/fern
-dataset_type = llff
+expname = doll_rated_360
+basedir = ./log
+datadir = ./data/indoor/doll-rotateadd/
+dataset_type = synth360
 
 factor = 8
 llffhold = 8
