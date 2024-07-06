@@ -30,7 +30,7 @@ def mk_poses(read_json,out_txt):
             # カメラの位置(x, y, z)を取得
             x, y, z = shot['translation']
             n = 8
-            x, y, z = x/n , y/n , z/n
+            x, y, z = round(x/n,2) , round(y/n,2) , round(z/n,2)
             # 単位行列(0, -1, 0, 1, 0, 0)を使用して回転行列を作成
             r = [1.0,0.0,0.0,0.0,0.0,-1.0, 0.0, 1.0,  0.0]
             
