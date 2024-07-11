@@ -118,7 +118,10 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     rays_o = torch.reshape(rays_o, [-1,3]).float()
     rays_d = torch.reshape(rays_d, [-1,3]).float()
 
-    near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
+    # near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
+    # sp-rendering
+    near, far = near * torch.arctan(rays_d[...,1:2]), far *  torch.arctan(rays_d[...,1:2])
+
     rays = torch.cat([rays_o, rays_d, near, far], -1)
     # save_tensor_to_npz(rays,"rays_all_info")
     if use_viewdirs:
@@ -749,7 +752,7 @@ def train():
 
     # N_iters = 200000 + 1
     # N_iters = 100000 + 1
-    N_iters = 10000000 + 1
+    N_iters = 1000000 + 1
 
     print('Begin')
     print('TRAIN views are', i_train)
