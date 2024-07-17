@@ -1,5 +1,5 @@
 expname = Roll-TUT-out-tosho-360-addr
-basedir = ./logs
+basedir = ./log
 datadir = ./data/outdoor/toshokan-yoko
 dataset_type = synth360
 

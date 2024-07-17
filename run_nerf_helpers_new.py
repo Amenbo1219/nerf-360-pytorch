@@ -155,10 +155,56 @@ class NeRF(nn.Module):
         self.alpha_linear.bias.data = torch.from_numpy(np.transpose(weights[idx_alpha_linear+1]))
 
 
+def get_rays_sp(H, W, K, c2w):
+    # Rays_Dは光線のθφω(向き情報)，これはあくまでワールド座標系
+    # Rays_Oは光線のxzy位置，これもワールド座標系
+    # Dirs:W,Hの要素を取り出して，各配列に入れて，レンズの歪みを加算したもの
+    # 光線の一つなので，θにはWの焦点距離の影響，φにはHの焦点距離の影響，ωは1が移入される．
+    # 球面座標系でのサンプリング
+    theta = torch.linspace( 0, 2*torch.pi, W)
+    phi = torch.linspace(0, torch.pi, H)
+    
+    # メッシュグリッドの生成
+    phi,theta = torch.meshgrid(phi,theta, indexing='ij')
+    
+    # 球面座標から直交座標への変換
+    x = torch.sin(theta) * torch.cos(phi)
+    y = torch.sin(theta) * torch.sin(phi)
+    z = torch.cos(theta)
+    
+    # レイの方向ベクトルを作成
+    dirs = torch.stack([x, y, z], dim=-1)  # [H, W, 3]
+    
+    # Rotate ray directions from camera frame to the world frame
+    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    # rays_d = torch.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    # Translate camera frame's origin to the world frame. It is the origin of all rays.
+    rays_o = c2w[:3,-1].expand(rays_d.shape)
+    return rays_o, rays_d
 
+
+def get_rays_np_sp(H, W, K, c2w):
+    theta = np.linspace(0, 2*torch.pi, H)
+    phi = np.linspace(0, torch.pi, W)
+    
+    # メッシュグリッドの生成
+    theta, phi = np.meshgrid(theta, phi, indexing='ij')
+    
+    # 球面座標から直交座標への変換
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
+    
+    # レイの方向ベクトルを作成
+    dirs = np.stack([x, y, z], dim=-1)  # [H, W, 3]
+    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    # rays_d = np.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    # Translate camera frame's origin to the world frame. It is the origin of all rays.
+    rays_o = np.broadcast_to(c2w[:3,-1], np.shape(rays_d))
+    return rays_o, rays_d
 
 # Ray helpers
-def get_rays_sp(H, W, K, c2w):
+def get_rays_roll(H, W, K, c2w):
     # Rays_Dは光線のθφω(向き情報)，これはあくまでワールド座標系
     # Rays_Oは光線のxzy位置，これもワールド座標系
     # Dirs:W,Hの要素を取り出して，各配列に入れて，レンズの歪みを加算したもの
@@ -169,7 +215,7 @@ def get_rays_sp(H, W, K, c2w):
     theta = (i/W-1/2)*2*torch.pi # del360-v2
     phi = (j/H-1/2)*2*torch.pi # del360-v2
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
-    dirs = torch.stack([theta,phi, torch.ones_like(i)], -1) # del360-v3
+    dirs = torch.stack([theta,phi, -torch.ones_like(i)], -1) # del360-v3
 
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
@@ -182,13 +228,13 @@ def get_rays_sp(H, W, K, c2w):
     return rays_o, rays_d
 
 
-def get_rays_np_sp(H, W, K, c2w):
+def get_rays_np_roll(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     theta = (i/W-1/2)*2*np.pi # del360-v2
     phi = (j/H-1/2)*2*np.pi # del360-v2
     
     # dirs = np.stack([np.cos(phi),-np.cos(theta)*np.sin(phi), -np.cos(theta)*np.sin(phi)], -1) # del360-v2
-    dirs = np.stack([theta,phi, np.ones_like(i)], -1) # del360-v3
+    dirs = np.stack([theta,phi, -np.ones_like(i)], -1) # del360-v3
     # dirs = np.stack([np.asin(n_i/torch.cos(n_j)),-np.ones_like(i),np.asin(n_j),], -1) # del360-v3
     # dirs[np.signbit(dirs)] = 1 # del360-v3
     # dirs = np.stack([(i-K[0][2])/K[0][0]*np.pi, -(j-K[1][2])/K[1][1]*np.pi/2, -np.ones_like(i)], -1)
