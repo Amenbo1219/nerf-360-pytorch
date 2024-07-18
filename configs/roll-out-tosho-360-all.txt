@@ -1,4 +1,4 @@
-expname = Roll-TUT-out-tosho
+expname = Roll-TUT-out-tosho-all
 basedir = ./log
 datadir = ./data/outdoor/toshokan-yoko
 dataset_type = synth360
