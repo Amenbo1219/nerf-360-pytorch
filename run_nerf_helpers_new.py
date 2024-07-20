@@ -213,9 +213,9 @@ def get_rays_roll(H, W, K, c2w):
     i = i.t()
     j = j.t()
     theta = (i/W-1/2)*2*torch.pi # del360-v2
-    phi = (j/H-1/2)*torch.pi # del360-v2
+    phi = (j/H-1/2)*2*torch.pi # del360-v2
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
-    dirs = torch.stack([theta,phi, -torch.ones_like(i)], -1) # del360-v3
+    dirs = torch.stack([theta,-phi, -torch.ones_like(i)], -1) # del360-v3
 
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
@@ -231,10 +231,10 @@ def get_rays_roll(H, W, K, c2w):
 def get_rays_np_roll(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     theta = (i/W-1/2)*2*np.pi # del360-v2
-    phi = (j/H-1/2)*np.pi # del360-v2
+    phi = (j/H-1/2)*2*np.pi # del360-v2
     
     # dirs = np.stack([np.cos(phi),-np.cos(theta)*np.sin(phi), -np.cos(theta)*np.sin(phi)], -1) # del360-v2
-    dirs = np.stack([theta,phi, -np.ones_like(i)], -1) # del360-v3
+    dirs = np.stack([theta,-phi, -np.ones_like(i)], -1) # del360-v3
     # dirs = np.stack([np.asin(n_i/torch.cos(n_j)),-np.ones_like(i),np.asin(n_j),], -1) # del360-v3
     # dirs[np.signbit(dirs)] = 1 # del360-v3
     # dirs = np.stack([(i-K[0][2])/K[0][0]*np.pi, -(j-K[1][2])/K[1][1]*np.pi/2, -np.ones_like(i)], -1)

@@ -29,7 +29,7 @@ def _load_data(basedir):
             #     [0, 0, 1, line[12]],
             #     [0, 0, 0, 1]
             # ],dtype=np.float32)
-            # pose = pose[:,[1,0,2,3]]  # v3
+            pose = pose[:,[1,0,2,3]]  # v3
             # pose *= -1
             poses.append(pose)
             img = imread(os.path.join(imgdir, line[0]+".png"))/255.
