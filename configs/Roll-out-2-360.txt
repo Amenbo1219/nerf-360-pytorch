@@ -1,0 +1,13 @@
+expname = Rool-TUT-OUT-2-180
+basedir = log
+datadir = ./data/outdoor/2/
+dataset_type = synth360
+
+
+N_rand = 1024
+N_samples = 8
+N_importance = 64
+
+raw_noise_std = 1e0
+
+no_batching = True
