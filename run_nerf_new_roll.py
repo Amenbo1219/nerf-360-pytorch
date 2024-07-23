@@ -525,11 +525,11 @@ def config_parser():
                         help='frequency of console printout and metric loggin')
     parser.add_argument("--i_img",     type=int, default=500, 
                         help='frequency of tensorboard image logging')
-    parser.add_argument("--i_weights", type=int, default=10000, 
+    parser.add_argument("--i_weights", type=int, default=1000, 
                         help='frequency of weight ckpt saving')
-    parser.add_argument("--i_testset", type=int, default=50000, 
+    parser.add_argument("--i_testset", type=int, default=5000, 
                         help='frequency of testset saving')
-    parser.add_argument("--i_video",   type=int, default=50000, 
+    parser.add_argument("--i_video",   type=int, default=5000, 
                         help='frequency of render_poses video saving')
 
     return parser
@@ -601,13 +601,13 @@ def train():
                         # (i not in i_test and i not in i_val)])
         print(i_train)
         print('DEFINING BOUNDS')
-        if args.no_ndc:
-            near = np.ndarray.min(bds) * .9
-            far = np.ndarray.max(bds) * 1.
+        # if args.no_ndc:
+        #     near = np.ndarray.min(bds) * .9
+        #     far = np.ndarray.max(bds) * 1.
             
-        else:
-            near = 0.
-            far = 1.
+        # else:
+        near = 0.
+        far = 1.
         print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'blender':
