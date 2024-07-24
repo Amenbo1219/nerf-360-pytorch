@@ -215,7 +215,7 @@ def get_rays_roll(H, W, K, c2w):
     theta = (i/W-1/2)*2*torch.pi # del360-v2
     phi = (j/H-1/2)*2*torch.pi-torch.pi # del360-v2
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
-    dirs = torch.stack([theta,-phi, -torch.ones_like(i)], -1) # del360-v3
+    dirs = torch.stack([theta,phi, -torch.ones_like(i)], -1) # del360-v3
 
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)

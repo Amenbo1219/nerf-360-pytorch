@@ -1,11 +1,11 @@
-expname = Roll-TUT-out-tosho-all
-basedir = ./log
+expname = Roll-TUT-out-tosho-4096rays
+basedir = ./logs
 datadir = ./data/outdoor/toshokan-yoko
 dataset_type = synth360
 
-N_rand = 1024
+N_rand = 7056
 N_samples = 128
-N_importance = 64
+N_importance = 128
 
 raw_noise_std = 1e0
 
