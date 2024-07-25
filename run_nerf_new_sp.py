@@ -609,8 +609,8 @@ def train():
             far = np.ndarray.max(bds) * 1.
             
         else:
-            near = 0.
-            far = 1.
+            near = 2.
+            far = 4.
         print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'blender':

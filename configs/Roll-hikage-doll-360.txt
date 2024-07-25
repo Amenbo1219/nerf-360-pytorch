@@ -1,10 +1,10 @@
-expname = TUT-out-doll-360
-basedir = ./logs
-datadir = ./data/outdoor/out-table
+expname = Rool-TUT-out-hikage
+basedir = ./log
+datadir = ./data/outdoorv2/hikage-table
 dataset_type = synth360
 
 
-N_rand = 8096
+N_rand = 20480
 N_samples = 8
 N_importance = 8
 
