@@ -214,9 +214,13 @@ def get_rays_roll(H, W, K, c2w):
     j = j.t()
     theta = (i/W-1/2)*2*torch.pi # del360-v2
     phi = (j/H-1/2)*2*torch.pi # del360-v2
-    # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
-    dirs = torch.stack([theta,phi, torch.ones_like(i)*torch.pi], -1) # del360-v3
 
+    x = torch.sin(theta) * torch.cos(phi)
+    y = torch.sin(theta) * torch.sin(phi)
+    z = torch.cos(theta)
+    
+    dirs = torch.stack([x,y,z], -1) # del360-v3
+    # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
 
@@ -232,18 +236,15 @@ def get_rays_np_roll(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     theta = (i/W-1/2)*2*np.pi # del360-v2
     phi = (j/H-1/2)*2*np.pi # del360-v2
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
     
-    # dirs = np.stack([np.cos(phi),-np.cos(theta)*np.sin(phi), -np.cos(theta)*np.sin(phi)], -1) # del360-v2
-    dirs = np.stack([theta,phi, np.pi], -1) # del360-v3
-    # dirs = np.stack([np.asin(n_i/torch.cos(n_j)),-np.ones_like(i),np.asin(n_j),], -1) # del360-v3
-    # dirs[np.signbit(dirs)] = 1 # del360-v3
-    # dirs = np.stack([(i-K[0][2])/K[0][0]*np.pi, -(j-K[1][2])/K[1][1]*np.pi/2, -np.ones_like(i)], -1)
-    # Rotate ray directions from camera frame to the world frame
+    dirs = np.stack([x,y,z], -1) # del360-v3
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     
-    # rays_d = np.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
-    # Translate camera frame's origin to the world frame. It is the origin of all rays.
     rays_o = np.broadcast_to(c2w[:3,-1], np.shape(rays_d))
+    
     return rays_o, rays_d
 
 # Ray helpers
@@ -255,11 +256,13 @@ def get_rays(H, W, K, c2w):
     i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
-    phi = torch.ones_like(i) # del360-v2
-    theta = (j/H-1/2)*2*torch.pi # del360-v2
-    # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
-    dirs = torch.stack([theta,phi, -torch.ones_like(i)], -1) # del360-v3
-
+    theta = (i/W-1/2)*2*torch.pi # del360-v2
+    phi = (j/H-1/2)*2*torch.pi # del360-v2
+    x = torch.sin(theta) * torch.cos(phi)
+    y = torch.sin(theta) * torch.sin(phi)
+    z = torch.cos(theta)
+    
+    dirs = torch.stack([x,y,z], -1) # del360-v3
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
 
@@ -274,11 +277,13 @@ def get_rays(H, W, K, c2w):
 
 def get_rays_np(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
-    phi = np.ones_like(i) # del360-v2
-    theta = (j/H-1/2)*2*np.pi # del360-v2
+    theta = (i/W-1/2)*2*np.pi # del360-v2
+    phi = (j/H-1/2)*2*np.pi # del360-v2
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
     
-    # dirs = np.stack([np.cos(phi),-np.cos(theta)*np.sin(phi), -np.cos(theta)*np.sin(phi)], -1) # del360-v2
-    dirs = np.stack([phi,theta, -np.ones_like(i)], -1) # del360-v3
+    dirs = np.stack([x,y,z], -1) # del360-v3
     # dirs = np.stack([np.asin(n_i/torch.cos(n_j)),-np.ones_like(i),np.asin(n_j),], -1) # del360-v3
     # dirs[np.signbit(dirs)] = 1 # del360-v3
     # dirs = np.stack([(i-K[0][2])/K[0][0]*np.pi, -(j-K[1][2])/K[1][1]*np.pi/2, -np.ones_like(i)], -1)
