@@ -3,7 +3,7 @@ basedir = ./logs
 datadir = ./data/outdoor/toshokan-yoko
 dataset_type = synth360
 
-N_rand = 7056
+N_rand = 8056
 N_samples = 128
 N_importance = 128
 
