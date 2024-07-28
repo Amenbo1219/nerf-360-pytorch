@@ -170,7 +170,7 @@ def get_rays_sp(H, W, K, c2w):
     x = torch.cos(theta) * torch.cos(phi) 
     y = torch.sin(phi)
     z = torch.sin(theta) * torch.cos(phi) 
-    dirs = np.stack([x, y, z], dim=-1)  # [H, W, 3]
+    dirs = torch.stack([x, y, z], -1)  # [H, W, 3]
     # Rotate ray directions from camera frame to the world frame
     rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     # rays_d = torch.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
