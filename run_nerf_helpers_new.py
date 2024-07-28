@@ -217,7 +217,7 @@ def get_rays_roll(H, W, K, c2w):
 
     x = torch.cos(theta) * torch.cos(phi)
     y = torch.cos(phi) * torch.sin(theta)
-    z = torch.abs(torch.sin(phi))
+    z =torch.cos(phi)
     
     dirs = torch.stack([x,y,z], -1) # del360-v3
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
@@ -238,7 +238,7 @@ def get_rays_np_roll(H, W, K, c2w):
     phi = (j/H)*np.pi # del360-v2
     x = np.cos(theta) * np.cos(phi)
     y = np.cos(phi) * np.sin(theta)
-    z = np.abs(np.sin(phi))
+    z = np.cos(phi)
     dirs = np.stack([x,y,z], -1) # del360-v3
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
 
