@@ -161,16 +161,19 @@ def get_rays_sp(H, W, K, c2w):
     # Dirs:W,Hの要素を取り出して，各配列に入れて，レンズの歪みを加算したもの
     # 光線の一つなので，θにはWの焦点距離の影響，φにはHの焦点距離の影響，ωは1が移入される．
     # 球面座標系でのサンプリング
+    i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))  # pytorch's meshgrid has indexing='ij'
+    i = i.t()
+    j = j.t()
     theta = torch.linspace( 0, 2*torch.pi, W)
     phi = torch.linspace(0, torch.pi, H)
     
     # メッシュグリッドの生成
-    phi,theta = torch.meshgrid(phi,theta, indexing='ij')
-    
-    # 球面座標から直交座標への変換
-    x = torch.sin(theta) * torch.cos(phi)
-    y = torch.sin(theta) * torch.sin(phi)
-    z = torch.cos(theta)
+    theta = (i/W)*2*np.pi # del360-v2
+    phi = (j/H)*np.pi # del360-v2
+
+    x = torch.cos(theta) * torch.cos(phi)
+    y = torch.cos(phi) * torch.sin(theta)
+    z = torch.abs(torch.sin(phi))
     
     # レイの方向ベクトルを作成
     dirs = torch.stack([x, y, z], dim=-1)  # [H, W, 3]
@@ -184,22 +187,15 @@ def get_rays_sp(H, W, K, c2w):
 
 
 def get_rays_np_sp(H, W, K, c2w):
-    theta = np.linspace(0, 2*torch.pi, H)
-    phi = np.linspace(0, torch.pi, W)
-    
-    # メッシュグリッドの生成
-    theta, phi = np.meshgrid(theta, phi, indexing='ij')
-    
-    # 球面座標から直交座標への変換
-    x = np.sin(theta) * np.cos(phi)
-    y = np.sin(theta) * np.sin(phi)
-    z = np.cos(theta)
-    
-    # レイの方向ベクトルを作成
-    dirs = np.stack([x, y, z], dim=-1)  # [H, W, 3]
+    i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
+    theta = (i/W)*2*np.pi # del360-v2
+    phi = (j/H)*np.pi # del360-v2
+    x = np.cos(theta) * np.cos(phi)
+    y = np.cos(phi) * np.sin(theta)
+    z = np.abs(np.sin(phi))
+    dirs = np.stack([x,y,z], -1) # del360-v3
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
-    # rays_d = np.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
-    # Translate camera frame's origin to the world frame. It is the origin of all rays.
+
     rays_o = np.broadcast_to(c2w[:3,-1], np.shape(rays_d))
     return rays_o, rays_d
 
@@ -212,20 +208,15 @@ def get_rays_roll(H, W, K, c2w):
     i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
-    theta = (i/W)*2*np.pi # del360-v2
-    phi = (j/H)*np.pi # del360-v2
+    theta = (i/W-1/2)*2*np.pi # del360-v2
+    phi = (j/H-1/2)*2*np.pi # del360-v2
 
-    x = torch.cos(theta) * torch.cos(phi)
-    y = torch.cos(phi) * torch.sin(theta)
-    z = torch.abs(torch.sin(phi))
-    
-    dirs = torch.stack([x,y,z], -1) # del360-v3
+    dirs = torch.stack([theta,phi,torch.ones_like(i)], dim=-1) # del360-v3
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
-
+    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  
     # Rotate ray directions from camera frame to the world frame
-    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     # rays_d = torch.sum(dirs[..., np.newaxis, :] , -2)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     # Translate camera frame's origin to the world frame. It is the origin of all rays.
     rays_o = c2w[:3,-1].expand(rays_d.shape)
@@ -235,13 +226,11 @@ def get_rays_roll(H, W, K, c2w):
 def get_rays_np_roll(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     theta = (i/W)*2*np.pi # del360-v2
-    phi = (j/H)*np.pi # del360-v2
-    x = np.cos(theta) * np.cos(phi)
-    y = np.cos(phi) * np.sin(theta)
-    z = np.abs(np.sin(phi))
-    dirs = np.stack([x,y,z], -1) # del360-v3
-    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    phi = (j/H)*2*np.pi # del360-v2
+    dirs = np.stack([theta,phi,np.ones_like(i)], -1) # del360-v3
 
+ # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1) 
     rays_o = np.broadcast_to(c2w[:3,-1], np.shape(rays_d))
     return rays_o, rays_d
 

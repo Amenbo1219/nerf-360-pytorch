@@ -4,7 +4,7 @@ import imageio
 import json
 import random
 import time
-from load_synth360 import load_synth360_data
+from load_synth360_st import load_synth360_data
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
