@@ -207,10 +207,19 @@ def get_rays_roll(H, W, K, c2w):
     i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
-    theta = (i/W-1/2)*2*np.pi # del360-v2
-    phi = (j/H-1/2)*2*np.pi # del360-v2
 
-    dirs = torch.stack([theta,phi,torch.ones_like(i)], dim=-1) # del360-v3
+    # ピクセル座標を[-1, 1]に正規化
+    u = (2 * i / W) - 1  # 水平軸
+    v = 1 - (2 * j / H)  # 垂直軸
+
+    # 角度と高さに変換
+    theta = u * torch.pi  # 水平角
+    phi = v  # 高さ（-1から1の範囲）
+
+    x = torch.sin(theta)
+    y = phi
+    z = torch.cos(theta)
+    dirs = torch.stack([x,y,z], dim=-1) # del360-v3
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
     # dirs = torch.stack([(i-K[0][2])/K[0][0], -(j-K[1][2])/K[1][1], -torch.ones_like(i)], -1)
@@ -224,10 +233,20 @@ def get_rays_roll(H, W, K, c2w):
 
 def get_rays_np_roll(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
-    theta = (i/W)*2*np.pi # del360-v2
-    phi = (j/H)*2*np.pi # del360-v2
-    dirs = np.stack([theta,phi,np.ones_like(i)], -1) # del360-v3
 
+
+    # ピクセル座標を[-1, 1]に正規化
+    u = (2 * i / W) - 1  # 水平軸
+    v = 1 - (2 * j / H)  # 垂直軸
+
+    # 角度と高さに変換
+    theta = u * np.pi  # 水平角
+    phi = v  # 高さ（-1から1の範囲）
+
+    x = np.sin(theta)
+    y = phi
+    z = np.cos(theta)
+    dirs = np.stack([x,y,z], -1) # del360-v3
  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1) 
     rays_o = np.broadcast_to(c2w[:3,-1], np.shape(rays_d))
