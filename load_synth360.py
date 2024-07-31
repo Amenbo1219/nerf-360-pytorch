@@ -16,13 +16,18 @@ def _load_data(basedir):
             line = line.rstrip()
             line = line.split(" ")
             print(len(line))
+            # pose = np.array([
+            #     [line[1], line[2], line[3], line[10]],
+            #     [line[4], line[5], line[6], line[11]],
+            #     [line[7], line[8], line[9], line[12]],
+            #     [0, 0, 0, 1]
+            # ],dtype=np.float32)
             pose = np.array([
-                [line[1], line[2], line[3], line[10]],
+                [1, 0, 0, line[10]],
                 [line[4], line[5], line[6], line[11]],
                 [line[7], line[8], line[9], line[12]],
                 [0, 0, 0, 1]
             ],dtype=np.float32)
-            
             # pose = np.array([
             #     [1, 0, 0, line[10]],
             #     [0, 1, 0, line[11]],

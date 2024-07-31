@@ -168,8 +168,8 @@ def get_rays_sp(H, W, K, c2w):
     phi = v * (torch.pi / 2) # pi/2→h→-pi/2 に拡大
 
     x = torch.cos(theta) * torch.cos(phi) 
-    y = torch.sin(phi)
-    z = torch.sin(theta) * torch.cos(phi) 
+    y = torch.sin(theta) * torch.cos(phi) 
+    z = torch.sin(phi)
     dirs = torch.stack([x, y, z], -1)  # [H, W, 3]
     # Rotate ray directions from camera frame to the world frame
     rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
@@ -188,8 +188,8 @@ def get_rays_np_sp(H, W, K, c2w):
     phi = v * (np.pi / 2) # pi/2→h→-pi/2 に拡大
 
     x = np.cos(theta) * np.cos(phi) 
-    y = np.sin(phi)
-    z = np.sin(theta) * np.cos(phi) 
+    y = np.sin(theta) * np.cos(phi) 
+    z = np.sin(phi)
     # レイの方向ベクトルを作成
     dirs = np.stack([x, y, z], dim=-1)  # [H, W, 3]
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
@@ -217,8 +217,9 @@ def get_rays_roll(H, W, K, c2w):
     phi = v  # 高さ（-1から1の範囲）
 
     x = torch.sin(theta)
-    y = phi
-    z = torch.cos(theta)
+    y = torch.cos(theta)
+    z = phi
+
     dirs = torch.stack([x,y,z], dim=-1) # del360-v3
     # dirs = torch.stack([torch.cos(phi),-torch.cos(theta)*torch.sin(phi), -torch.cos(theta)*-torch.sin(phi)], -1) # del360-v2
     # i, j = torch.meshgrid(torch.linspace(0, THETA-1, THETA), torch.linspace(0, PHI-1, PHI))  # pytorch's meshgrid has indexing='ij'
@@ -244,8 +245,8 @@ def get_rays_np_roll(H, W, K, c2w):
     phi = v  # 高さ（-1から1の範囲）
 
     x = np.sin(theta)
-    y = phi
-    z = np.cos(theta)
+    y = np.cos(theta)
+    z = phi
     dirs = np.stack([x,y,z], -1) # del360-v3
  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3,:3], -1) 
