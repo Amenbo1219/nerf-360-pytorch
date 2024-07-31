@@ -1,5 +1,5 @@
-expname = Rool-TUT-In-KE101
-basedir = log
+expname = Rool-TUT-In-KE101-ADR
+basedir = logs
 datadir = ./data/indoor/KE101
 dataset_type = synth360
 
