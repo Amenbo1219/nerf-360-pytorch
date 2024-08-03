@@ -1,6 +1,6 @@
-expname = Rool-TUT-In-LAB
-basedir = log
-datadir = ./data/indoor/LAB
+expname = Roll-TUT-out-tosho
+basedir = ./log
+datadir = ./data/outdoor/toshokan-yoko
 dataset_type = synth360
 
 N_rand = 8096

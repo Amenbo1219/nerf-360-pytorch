@@ -1,12 +1,12 @@
-expname = Rool-TUT-kena_11F-180
+expname = Norm-TUT-kena_11F-180
 basedir = logs
 datadir = ./data/indoor/in-kena_11F
 dataset_type = synth360
 
 
-N_rand =  8096
+N_rand = 8096
 N_samples = 8
-N_importance = 8
+N_importance = 32
 
 raw_noise_std = 1e0
 

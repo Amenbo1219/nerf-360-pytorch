@@ -1,4 +1,4 @@
-expname = Rool-TUT-In-LAB
+expname = Norm-TUT-In-LAB
 basedir = log
 datadir = ./data/indoor/LAB
 dataset_type = synth360

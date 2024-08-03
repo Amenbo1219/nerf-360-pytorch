@@ -1,16 +1,12 @@
-expname = Roll-TUT-out-parking-360-addr
+expname = Norm-TUT-out-parking-360-addr
 basedir = ./logs
 datadir = ./data/outdoor/Parking
 dataset_type = synth360
 
-#factor = 8
-#llffhold = 8
-
-N_rand = 1024
+N_rand = 8096
 N_samples = 8
-N_importance = 64
+N_importance = 32
 
-use_viewdirs = True
 raw_noise_std = 1e0
 
 no_batching = True

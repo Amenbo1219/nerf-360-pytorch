@@ -15,7 +15,7 @@ def _load_data(basedir):
         for line in f.readlines():
             line = line.rstrip()
             line = line.split(" ")
-            print(len(line))
+            print(line[0]+".png", len(line))
             pose = np.array([
                 [line[1], line[2], line[3], line[10]],
                 [line[4], line[5], line[6], line[11]],

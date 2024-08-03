@@ -747,10 +747,10 @@ def train():
     if use_batching:
         rays_rgb = torch.Tensor(rays_rgb).to(device)
 
-    N_iters = 1000 + 1
+    # N_iters = 1000 + 1
     # N_iters = 200000 + 1
     # N_iters = 100000 + 1
-    # N_iters = 1000000 + 1
+    N_iters = 1000000 + 1
 
     print('Begin')
     print('TRAIN views are', i_train)

@@ -1,6 +1,6 @@
-expname = Rool-TUT-In-LAB
-basedir = log
-datadir = ./data/indoor/LAB
+expname = Norm-TUT-out-kouC-360-addr
+basedir = ./logs
+datadir = ./data/outdoor/kouC-isu
 dataset_type = synth360
 
 N_rand = 8096

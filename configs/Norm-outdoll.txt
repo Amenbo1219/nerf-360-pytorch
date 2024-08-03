@@ -1,6 +1,6 @@
-expname = Rool-TUT-In-LAB
-basedir = log
-datadir = ./data/indoor/LAB
+expname = Norm-out-doll
+basedir = ./log
+datadir = ./data/outdoor/out-table
 dataset_type = synth360
 
 N_rand = 8096

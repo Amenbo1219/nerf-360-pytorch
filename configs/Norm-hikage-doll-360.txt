@@ -1,12 +1,14 @@
-expname = Rool-TUT-In-LAB
-basedir = log
-datadir = ./data/indoor/LAB
+expname = Norm-TUT-out-hikage
+basedir = ./logs
+datadir = ./data/outdoor/hikage-table
 dataset_type = synth360
+
 
 N_rand = 8096
 N_samples = 8
 N_importance = 32
 
+use_viewdirs = True
 raw_noise_std = 1e0
 
 no_batching = True
