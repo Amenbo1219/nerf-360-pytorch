@@ -92,18 +92,18 @@ def load_synth360_data(basedir):
     i_test = np.array([i for i in range(t_images.shape[0],l_images.shape[0]+t_images.shape[0])])
     # i_test = l_images.shape
     # この辺は確認用のRendringPathなので過度に気にしなくてOK
-    c2w_path = poses_avg(poses)
-    up = normalize(poses[:, :3, 1].sum(0))
-    tt = poses[:,:3,3] # ptstocam(poses[:3,3,:].T, c2w).T
-    rads = np.percentile(np.abs(tt), 90, 0)
-    dt = .75
-    # close_depth, inf_depth = np.ravel(bds).min()*.9, np.ravel(bds).max()*5.
-    # mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
-    focal = 1
-    zdelta =  images.shape[1]*.9 * .2
-    N_rots = 2
-    N_views = 120
-    render_poses = render_path_spiral(c2w_path, up, rads, focal, zdelta, zrate=.5, rots=N_rots, N=N_views)
-    render_poses = np.array(render_poses).astype(np.float32)
+    # c2w_path = poses_avg(poses)
+    # up = normalize(poses[:, :3, 1].sum(0))
+    # tt = poses[:,:3,3] # ptstocam(poses[:3,3,:].T, c2w).T
+    # rads = np.percentile(np.abs(tt), 90, 0)
+    # dt = .75
+    # # close_depth, inf_depth = np.ravel(bds).min()*.9, np.ravel(bds).max()*5.
+    # # mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
+    # focal = 1
+    # # zdelta =  images.shape[1]*.9 * .2
+    # N_rots = 2
+    # N_views = 120
+    # render_poses = render_path_spiral(c2w_path, up, rads, focal, zdelta, zrate=.5, rots=N_rots, N=N_views)
+    render_poses = np.array(l_poses).astype(np.float32)
     # 
     return images, poses, bds ,render_poses,i_test
