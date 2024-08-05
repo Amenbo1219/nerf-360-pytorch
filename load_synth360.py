@@ -2,6 +2,35 @@ import os
 import numpy as np
 import cv2
 import torch 
+def transform_pose(line):
+    # 元の姿勢行列を作成
+    original_pose = np.array([
+        [line[1], line[2], line[3], line[10]],
+        [line[7], line[8], line[9], line[12]],
+        [line[4], line[5], line[6], line[11]],
+        [0, 0, 0, 1]
+    ], dtype=np.float32)
+    original_pose[[1,2],3] *=-1
+    # Y軸180度回転行列
+    Ry = np.array([
+        [-1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, -1, 0],
+        [0, 0, 0, 1]
+    ], dtype=np.float32)
+
+    # Z軸180度回転行列
+    Rz = np.array([
+        [-1, 0, 0, 0],
+        [0, -1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ], dtype=np.float32)
+
+    # 変換を適用（Y軸回転後にZ軸回転）
+    transformed_pose = Rz @ Ry @ original_pose
+
+    return transformed_pose
 def _load_data(basedir):
 
     imgdir = os.path.join(basedir, 'images')
@@ -16,12 +45,8 @@ def _load_data(basedir):
             line = line.rstrip()
             line = line.split(" ")
             print(line[0]+".png", len(line))
-            pose = np.array([
-                [line[1], line[2], line[3], line[10]],
-                [line[4], line[5], line[6], line[11]],
-                [line[7], line[8], line[9], line[12]],
-                [0, 0, 0, 1]
-            ],dtype=np.float32)
+            pose = transform_pose(line)
+
             # pose = np.array([
             #     [1, 0, 0, line[10]],
             #     [line[4], line[5], line[6], line[11]],
@@ -34,8 +59,6 @@ def _load_data(basedir):
             #     [0, 0, 1, line[12]],
             #     [0, 0, 0, 1]
             # ],dtype=np.float32)
-
-            pose = pose[:,[1,0,2,3]]  # v3
             # pose *= -1
             poses.append(pose)
             img = imread(os.path.join(imgdir, line[0]+".png"))/255.

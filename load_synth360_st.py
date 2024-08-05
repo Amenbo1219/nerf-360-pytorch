@@ -19,10 +19,12 @@ def _load_data(basedir):
            
             pose = np.array([
                 [1, 0, 0, line[10]],
-                [0, 1, 0, line[11]],
                 [0, 0, 1, line[12]],
+                [0, 1, 0, line[11]],
                 [0, 0, 0, 1]
             ],dtype=np.float32)
+            pose[[1,2],3] *=-1
+            # print(pose)
             # pose = pose[:,[1,0,2,3]]  # v3
             # pose *= -1
             poses.append(pose)
