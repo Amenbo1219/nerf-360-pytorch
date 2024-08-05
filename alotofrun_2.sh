@@ -2,10 +2,6 @@
 
 # コマンドのリスト
 commands=(
-    "python run_nerf.py --config=configs/Norm-blender360.txt"
-    "python run_nerf.py --config=configs/Norm-hikage-doll-360.txt"
-    "python run_nerf.py --config=configs/Norm-KE101-origin-adr.txt"
-    "python run_nerf.py --config=configs/Norm-LAB.txt"
     "python run_nerf.py --config=configs/Norm-out-inkena11.txt"
     "python run_nerf.py --config=configs/Norm-out-kouC-360.txt"
     "python run_nerf.py --config=configs/Norm-out-pkg.txt"
@@ -21,7 +17,7 @@ run_parallel() {
     wait
 }
 
-# コマンドを3つずつ実行
-for ((i=0; i<${#commands[@]}; i+=4)); do
-    run_parallel "${commands[@]:i:3}"
+# コマンドを2つずつ実行
+for ((i=0; i<${#commands[@]}; i+=1)); do
+    run_parallel "${commands[@]:i:1}"
 done

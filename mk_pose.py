@@ -62,13 +62,12 @@ def mk_poses(read_json,out_txt):
             if ROTATION==True:
                 if cnt==0:
                     o_x,o_y,o_z = shot['rotation']
-                    o_y = -o_y
-                    o_z = -o_z
+                    o_x = o_x
+                    o_y = o_y
+                    o_z = o_z
                     r_x,r_y,r_z = 0,0,0     
                 else :
                     r_x,r_y,r_z = shot['rotation']
-                    r_y = -r_y
-                    r_z = -r_z
                     r_x -= o_x
                     r_y -= o_y
                     r_z -= o_z
