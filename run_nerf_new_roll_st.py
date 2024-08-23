@@ -9,10 +9,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm, trange
-
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import matplotlib.pyplot as plt
 
-from run_nerf_helpers_new import *
+from run_nerf_helpers_new_st import *
 
 from load_llff import load_llff_data
 from load_deepvoxels import load_dv_data
@@ -607,8 +607,8 @@ def train():
         #     far = np.ndarray.max(bds) * 1.
             
         # else:
-        near = 0.
-        far = np.pi
+        near = 1.
+        far = 2.
         print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'blender':
@@ -748,9 +748,9 @@ def train():
 
     # N_iters = 10000 + 1
 
-    N_iters = 200000 + 1
+    # N_iters = 200000 + 1
     # N_iters = 100000 + 1
-    # N_iters = 1000000 + 1
+    N_iters = 1000000 + 1
 
     print('Begin')
     print('TRAIN views are', i_train)

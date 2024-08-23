@@ -2,35 +2,32 @@ import os
 import numpy as np
 import cv2
 import torch 
+import math
+def roll_rotation_matrix(angle_degrees):
+    angle_radians = math.radians(angle_degrees)
+    return np.array([
+        [1, 0, 0],
+        [0, math.cos(angle_radians), -math.sin(angle_radians)],
+        [0, math.sin(angle_radians), math.cos(angle_radians)]
+    ])
+
 def transform_pose(line):
     # 元の姿勢行列を作成
-    original_pose = np.array([
-        [line[1], line[2], line[3], line[10]],
-        [line[7], line[8], line[9], line[12]],
-        [line[4], line[5], line[6], line[11]],
-        [0, 0, 0, 1]
-    ], dtype=np.float32)
-    original_pose[[1,2],3] *=-1
-    # Y軸180度回転行列
-    Ry = np.array([
-        [-1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, -1, 0],
-        [0, 0, 0, 1]
-    ], dtype=np.float32)
+    # make_transform_pose
+    transform_pose = np.zeros((4,4),np.float32)
+    transform_pose[3,3] = 1.0
+    # make_rotationMATRIX
+    rotation_matrix = np.array([float(x) for x in line[1:10]]).reshape(3,3)
+    translation = np.array([float(x) for x in line[10:13]]).reshape(3)
+    roll_rotation = roll_rotation_matrix(-270)
+    # -90Degree_FIXed
+    rotation_matrix = roll_rotation @ rotation_matrix
+    # translation = translation @ roll_rotation 
+    # Applyed RotationMatrix
+    transform_pose[:3,:3] = rotation_matrix
+    transform_pose[0:3,3] = translation.T
 
-    # Z軸180度回転行列
-    Rz = np.array([
-        [-1, 0, 0, 0],
-        [0, -1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ], dtype=np.float32)
-
-    # 変換を適用（Y軸回転後にZ軸回転）
-    transformed_pose = Rz @ Ry @ original_pose
-
-    return transformed_pose
+    return transform_pose
 def _load_data(basedir):
 
     imgdir = os.path.join(basedir, 'images')
@@ -46,20 +43,7 @@ def _load_data(basedir):
             line = line.split(" ")
             print(line[0]+".png", len(line))
             pose = transform_pose(line)
-
-            # pose = np.array([
-            #     [1, 0, 0, line[10]],
-            #     [line[4], line[5], line[6], line[11]],
-            #     [line[7], line[8], line[9], line[12]],
-            #     [0, 0, 0, 1]
-            # ],dtype=np.float32)
-            # pose = np.array([
-            #     [1, 0, 0, line[10]],
-            #     [0, 1, 0, line[11]],
-            #     [0, 0, 1, line[12]],
-            #     [0, 0, 0, 1]
-            # ],dtype=np.float32)
-            # pose *= -1
+            print(pose)
             poses.append(pose)
             img = imread(os.path.join(imgdir, line[0]+".png"))/255.
             img = cv2.resize(img, (1024, 512))

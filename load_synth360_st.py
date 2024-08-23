@@ -2,7 +2,116 @@ import os
 import numpy as np
 import cv2
 import torch 
-def _load_data(basedir):
+
+# def transform_pose(line):
+#     # 元の姿勢行列を作成
+#     original_pose = np.array([
+#         [line[1], line[2], line[3], line[10]],
+#         [line[4], line[5], line[6], line[12]],
+#         [line[7], line[8], line[9],line[11]],
+#         [0, 0, 0, 1]
+#     ], dtype=np.float32)
+#     # original_pose[2,3] *=-1
+#     # # Y軸180度回転行列
+#     # Ry = np.array([
+#     #     [-1, 0, 0, 0],
+#     #     [0, 1, 0, 0],
+#     #     [0, 0, -1, 0],
+#     #     [0, 0, 0, 1]
+#     # ], dtype=np.float32)
+
+#     # Z軸180度回転行列
+#     # Rz = np.array([
+#     #     [-1, 0, 0, 0],
+#     #     [0, -1, 0, 0],
+#     #     [0, 0, 1, 0],
+#     #     [0, 0, 0, 1]
+#     # ], dtype=np.float32)
+
+#     # 変換を適用（Y軸回転後にZ軸回転）
+#     # transformed_pose = Rz @ original_pose
+#     transformed_pose = original_pose
+
+#     return transformed_pose
+# def _load_data(basedir):
+
+#     imgdir = os.path.join(basedir, 'images')
+
+#     def imread(f):
+#         return cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2RGB)
+
+#     poses = []
+#     imgs = []
+#     with open(os.path.join(basedir, 'poses.txt')) as f:
+#         for line in f.readlines():
+#             line = line.rstrip()
+#             line = line.split(" ")
+#             print(line[0]+".png", len(line))
+#             pose = transform_pose(line)
+
+#             # pose = np.array([
+#             #     [1, 0, 0, line[10]],
+#             #     [line[4], line[5], line[6], line[11]],
+#             #     [line[7], line[8], line[9], line[12]],
+#             #     [0, 0, 0, 1]
+#             # ],dtype=np.float32)
+#             # pose = np.array([
+#             #     [1, 0, 0, line[10]],
+#             #     [0, 1, 0, line[11]],
+#             #     [0, 0, 1, line[12]],
+#             #     [0, 0, 0, 1]
+#             # ],dtype=np.float32)
+#             # pose *= -1
+#             poses.append(pose)
+#             img = imread(os.path.join(imgdir, line[0]+".png"))/255.
+#             img = cv2.resize(img, (1024, 512))
+#             # img = cv2.resize(img, (320, 160))
+#             imgs.append(img)
+
+#     imgs = np.array(imgs).astype(np.float32)
+#     poses = np.array(poses).astype(np.float32)
+
+#     return poses, imgs
+
+def transform_pose_st(line):
+    # 元の姿勢行列を作成
+    # original_pose = np.array([
+    #     [1, 0, 0, line[10]],
+    #     [0, 1, 0, line[12]],
+    #     [0, 0, 1, line[11]],
+    #     [0, 0, 0, 1]
+    # ], dtype=np.float32)
+    # ChangeX<->Z
+    original_pose = np.array([
+        [1, 0, 0, line[11]],
+        [0, 1, 0, line[12]],
+        [0, 0, 1, line[10]],
+        [0, 0, 0, 1]
+    ], dtype=np.float32)
+    original_pose[[0,1,2],3] *= 10
+    # # Y軸180度回転行列
+    # Ry = np.array([
+    #     [-1, 0, 0, 0],
+    #     [0, 1, 0, 0],
+    #     [0, 0, -1, 0],
+    #     [0, 0, 0, 1]
+    # ], dtype=np.float32)
+
+    # Z軸180度回転行列
+    # Rz = np.array([
+    #     [-1, 0, 0, 0],
+    #     [0, -1, 0, 0],
+    #     [0, 0, 1, 0],
+    #     [0, 0, 0, 1]
+    # ], dtype=np.float32)
+    # original_pose[3,3] = 1/7
+
+    # 変換を適用（Y軸回転後にZ軸回転）
+    # transformed_pose = Rz  @ original_pose
+    transformed_pose =  original_pose
+
+    return transformed_pose
+def _load_data_st(basedir):
 
     imgdir = os.path.join(basedir, 'images')
 
@@ -16,16 +125,21 @@ def _load_data(basedir):
             line = line.rstrip()
             line = line.split(" ")
             print(line[0]+".png", len(line))
-           
-            pose = np.array([
-                [1, 0, 0, line[10]],
-                [0, 0, 1, line[12]],
-                [0, 1, 0, line[11]],
-                [0, 0, 0, 1]
-            ],dtype=np.float32)
-            pose[[1,2],3] *=-1
-            # print(pose)
-            # pose = pose[:,[1,0,2,3]]  # v3
+
+            pose = transform_pose_st(line)
+            print(pose)
+            # pose = np.array([
+            #     [1, 0, 0, line[10]],
+            #     [line[4], line[5], line[6], line[11]],
+            #     [line[7], line[8], line[9], line[12]],
+            #     [0, 0, 0, 1]
+            # ],dtype=np.float32)
+            # pose = np.array([
+            #     [1, 0, 0, line[10]],
+            #     [0, 1, 0, line[11]],
+            #     [0, 0, 1, line[12]],
+            #     [0, 0, 0, 1]
+            # ],dtype=np.float32)
             # pose *= -1
             poses.append(pose)
             img = imread(os.path.join(imgdir, line[0]+".png"))/255.
@@ -76,8 +190,8 @@ def render_path_spiral(c2w, up, rads, focal, zdelta, zrate, rots, N):
 def load_synth360_data(basedir):
     train = basedir+'/train/'
     test = basedir+'/test/'
-    t_poses, t_images = _load_data(train)
-    l_poses, l_images = _load_data(test)
+    t_poses, t_images = _load_data_st(train)
+    l_poses, l_images = _load_data_st(test)
     images = np.concatenate([t_images,l_images],0)
     poses = np.concatenate([t_poses,l_poses],0)
     bds = np.array([images.shape[1], images.shape[2], None])
@@ -102,10 +216,11 @@ def load_synth360_data(basedir):
     # # close_depth, inf_depth = np.ravel(bds).min()*.9, np.ravel(bds).max()*5.
     # # mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
     # focal = 1
-    # # zdelta =  images.shape[1]*.9 * .2
+    # zdelta =  images.shape[1]*.9 * .2
     # N_rots = 2
     # N_views = 120
     # render_poses = render_path_spiral(c2w_path, up, rads, focal, zdelta, zrate=.5, rots=N_rots, N=N_views)
+    # render_poses = np.array(render_poses).astype(np.float32)
+    # # 
     render_poses = np.array(l_poses).astype(np.float32)
-    # 
     return images, poses, bds ,render_poses,i_test

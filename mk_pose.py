@@ -58,17 +58,19 @@ def mk_poses(read_json,out_txt):
             x, y, z = round(x/n,2) , round(y/n,2) , round(z/n,2)
             # 単位行列(0, -1, 0, 1, 0, 0)を使用して回転行列を作成
             r = [1.0,0.0,0.0,0.0,1.0,0.0, 0.0, 0.0,  1.0]
-            
-            if ROTATION==True:
-                if cnt==0:
-                    o_x,o_y,o_z = shot['rotation']
-                    r_x,r_y,r_z = 0,0,0     
-                else :
-                    r_x,r_y,r_z = shot['rotation']
-                    r_x -= o_x
-                    r_y -= o_y
-                    r_z -= o_z
-                r = calc_rm(r_x,r_y,r_z)
+            r_x,r_y,r_z = shot['rotation']
+            r = calc_rm(r_x,r_y,r_z)
+
+            # if ROTATION==True:
+            #     if cnt==0:
+            #         o_x,o_y,o_z = shot['rotation']
+            #         r_x,r_y,r_z = 0,0,0     
+            #     else :
+            #         r_x,r_y,r_z = shot['rotation']
+            #         r_x -= o_x
+            #         r_y -= o_y
+            #         r_z -= o_z
+            #     r = calc_rm(r_x,r_y,r_z)
 
             cnt += 1
             # poses.txtファイルに書き込む

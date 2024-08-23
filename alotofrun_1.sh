@@ -2,10 +2,13 @@
 
 # コマンドのリスト
 commands=(
-    "python run_nerf.py --config=configs/Norm-blender360.txt"
-    "python run_nerf.py --config=configs/Norm-hikage-doll-360.txt"
-    "python run_nerf.py --config=configs/Norm-KE101-origin-adr.txt"
-    "python run_nerf.py --config=configs/Norm-LAB.txt"
+    "python run_nerf.py --config=drc_config/Roll-blender360.txt"
+    "python run_nerf.py --config=drc_config/Roll-hikage-doll-360.txt"
+    "python run_nerf.py --config=drc_config/Roll-inkena11.txt"
+    "python run_nerf.py --config=drc_config/Roll-in-doll.txt"
+    "python run_nerf.py --config=drc_config/Roll-KE101-origin-adr.txt"
+    "python run_nerf.py --config=drc_config/Roll-KENA-302.txt"
+    "python run_nerf.py --config=drc_config/Roll-LAB.txt"
 )
 
 # 並列実行する関数

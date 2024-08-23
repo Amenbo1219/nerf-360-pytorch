@@ -12,7 +12,7 @@ from tqdm import tqdm, trange
 
 import matplotlib.pyplot as plt
 
-from run_nerf_helpers_new import *
+from run_nerf_helpers_drc_st import *
 
 from load_llff import load_llff_data
 from load_deepvoxels import load_dv_data
@@ -20,8 +20,6 @@ from load_blender import load_blender_data
 from load_LINEMOD import load_LINEMOD_data
 
 import json
-
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(0)
 DEBUG = False
@@ -97,7 +95,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     """
     if c2w is not None:
         # special case to render full image
-        rays_o, rays_d = get_rays_sp(H, W, K, c2w)
+        rays_o, rays_d = get_rays_roll(H, W, K, c2w)
     else:
         # use provided ray batch
         rays_o, rays_d = rays
@@ -107,7 +105,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
         viewdirs = rays_d
         if c2w_staticcam is not None:
             # special case to visualize effect of viewdirs
-            rays_o, rays_d = get_rays_sp(H, W, K, c2w_staticcam)
+            rays_o, rays_d = get_rays_roll(H, W, K, c2w_staticcam)
         viewdirs = viewdirs / torch.norm(viewdirs, dim=-1, keepdim=True)
         viewdirs = torch.reshape(viewdirs, [-1,3]).float()
 
@@ -120,10 +118,7 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     rays_o = torch.reshape(rays_o, [-1,3]).float()
     rays_d = torch.reshape(rays_d, [-1,3]).float()
 
-    # near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
-    # sp-rendering
-    near, far = near * torch.arctan(rays_d[...,1:2]), far *  torch.arctan(rays_d[...,1:2])
-
+    near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
     rays = torch.cat([rays_o, rays_d, near, far], -1)
     # save_tensor_to_npz(rays,"rays_all_info")
     if use_viewdirs:
@@ -197,21 +192,20 @@ def create_nerf(args):
                  input_ch=input_ch, output_ch=output_ch, skips=skips,
                  input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(device)
     grad_vars = list(model.parameters())
-
     model_fine = None
     if args.N_importance > 0:
         model_fine = NeRF(D=args.netdepth_fine, W=args.netwidth_fine,
                           input_ch=input_ch, output_ch=output_ch, skips=skips,
                           input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(device)
         grad_vars += list(model_fine.parameters())
-    model = torch.nn.DataParallel(model)
-    model_fine = torch.nn.DataParallel(model_fine)
     
     network_query_fn = lambda inputs, viewdirs, network_fn : run_network(inputs, viewdirs, network_fn,
                                                                 embed_fn=embed_fn,
                                                                 embeddirs_fn=embeddirs_fn,
                                                                 netchunk=args.netchunk)
-
+    model = torch.nn.DataParallel(model)
+    model_fine = torch.nn.DataParallel(model_fine)
+    
     # Create optimizer
     optimizer = torch.optim.Adam(params=grad_vars, lr=args.lrate, betas=(0.9, 0.999))
 
@@ -528,9 +522,9 @@ def config_parser():
                         help='will take every 1/N images as LLFF test set, paper uses 8')
 
     # logging/saving options
-    parser.add_argument("--i_print",   type=int, default=1000, 
+    parser.add_argument("--i_print",   type=int, default=100, 
                         help='frequency of console printout and metric loggin')
-    parser.add_argument("--i_img",     type=int, default=50, 
+    parser.add_argument("--i_img",     type=int, default=500, 
                         help='frequency of tensorboard image logging')
     parser.add_argument("--i_weights", type=int, default=1000, 
                         help='frequency of weight ckpt saving')
@@ -608,13 +602,13 @@ def train():
                         # (i not in i_test and i not in i_val)])
         print(i_train)
         print('DEFINING BOUNDS')
-        if args.no_ndc:
-            near = np.ndarray.min(bds) * .9
-            far = np.ndarray.max(bds) * 1.
+        # if args.no_ndc:
+        #     near = np.ndarray.min(bds) * .9
+        #     far = np.ndarray.max(bds) * 1.
             
-        else:
-            near = 2.
-            far = 4.
+        # else:
+        near = 1.
+        far = 2.
         print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'blender':
@@ -732,7 +726,7 @@ def train():
     if use_batching:
         # For random ray batching
         print('get rays')
-        rays = np.stack([get_rays_np_sp(H, W, K, p) for p in poses[:,:3,:4]], 0) # [N, ro+rd, H, W, 3]
+        rays = np.stack([get_rays_np_roll(H, W, K, p) for p in poses[:,:3,:4]], 0) # [N, ro+rd, H, W, 3]
         print('done, concats')
         rays_rgb = np.concatenate([rays, images[:,None]], 1) # [N, ro+rd+rgb, H, W, 3]
         rays_rgb = np.transpose(rays_rgb, [0,2,3,1,4]) # [N, H, W, ro+rd+rgb, 3]
@@ -792,7 +786,7 @@ def train():
             pose = poses[img_i, :3,:4]
 
             if N_rand is not None:
-                rays_o, rays_d = get_rays_sp(H, W, K, torch.Tensor(pose))  # (H, W, 3), (H, W, 3)
+                rays_o, rays_d = get_rays_roll(H, W, K, torch.Tensor(pose))  # (H, W, 3), (H, W, 3)
                 # print(H,W,K)
                 if i < args.precrop_iters:
                     dH = int(H//2 * args.precrop_frac)
@@ -878,15 +872,15 @@ def train():
             moviebase = os.path.join(basedir, expname, '{}_spiral_{:06d}_'.format(expname, i))
             imageio.mimwrite(moviebase + 'rgb.mp4', to8b(rgbs), fps=30, quality=8)
             imageio.mimwrite(moviebase + 'disp.mp4', to8b(disps / np.max(disps)), fps=30, quality=8)
-            # save_tensor_to_npz(rays_o,f'{basedir}/{expname}/{i}_ray_o')
-            # save_tensor_to_npz(rays_d,f'{basedir}/{expname}/{i}_ray_d')
-            # save_tensor_to_npz(batch_rays,f'{basedir}/{expname}/{i}_batch_rays')
-            # save_tensor_to_npz(coords,f'{basedir}/{expname}/{i}_coords')
-            # save_tensor_to_npz(target_s,f'{basedir}/{expname}/{i}_target_s')
+            save_tensor_to_npz(rays_o,f'{basedir}/{expname}/{i}_ray_o')
+            save_tensor_to_npz(rays_d,f'{basedir}/{expname}/{i}_ray_d')
+            save_tensor_to_npz(batch_rays,f'{basedir}/{expname}/{i}_batch_rays')
+            save_tensor_to_npz(coords,f'{basedir}/{expname}/{i}_coords')
+            save_tensor_to_npz(target_s,f'{basedir}/{expname}/{i}_target_s')
             print(f"extras:{extras}")
-            # save_tensor_to_npz(extras['raw'],f'{basedir}/{expname}/{i}_extras')
+            save_tensor_to_npz(extras['raw'],f'{basedir}/{expname}/{i}_extras')
             # save_tensor_to_npz(extras,f'{basedir}/{expname}/{i}_extras')
-            # save_tensor_to_npz(rgb,f'{basedir}/{expname}/{i}_rgb')
+            save_tensor_to_npz(rgb,f'{basedir}/{expname}/{i}_rgb')
             if args.use_viewdirs:
                 render_kwargs_test['c2w_staticcam'] = render_poses[0][:3,:4]
                 with torch.no_grad():

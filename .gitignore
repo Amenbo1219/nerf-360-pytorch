@@ -8,3 +8,7 @@
 data/*
 logs/*
 log/*
+out/*
+ex_config/*
+drc_config/*
+dir/*
