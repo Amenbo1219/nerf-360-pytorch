@@ -19,9 +19,9 @@ def transform_pose(line):
     # make_rotationMATRIX
     rotation_matrix = np.array([float(x) for x in line[1:10]]).reshape(3,3)
     translation = np.array([float(x) for x in line[10:13]]).reshape(3)
-    roll_rotation = roll_rotation_matrix(-270)
+    # roll_rotation = roll_rotation_matrix(-270)
     # -90Degree_FIXed
-    rotation_matrix = roll_rotation @ rotation_matrix
+    # rotation_matrix = roll_rotation @ rotation_matrix
     # translation = translation @ roll_rotation 
     # Applyed RotationMatrix
     transform_pose[:3,:3] = rotation_matrix

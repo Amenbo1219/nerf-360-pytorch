@@ -26,7 +26,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(0)
 DEBUG = False
 
-
+def random_non_zero_choice(choices):
+    non_zero_choices = [x for x in choices if x != 0]
+    if not non_zero_choices:
+        raise ValueError("ゼロ以外の選択肢がありません。")
+    return random.choice(non_zero_choices)
 def batchify(fn, chunk):
     """Constructs a version of 'fn' that applies to smaller batches.
     """
@@ -120,9 +124,9 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     rays_o = torch.reshape(rays_o, [-1,3]).float()
     rays_d = torch.reshape(rays_d, [-1,3]).float()
 
-    # near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
+    near, far = near * torch.ones_like(rays_d[...,:1]), far * torch.ones_like(rays_d[...,:1])
     # sp-rendering
-    near, far = near * torch.arctan(rays_d[...,1:2]), far *  torch.arctan(rays_d[...,1:2])
+    # near, far = near * torch.arctan(rays_d[...,1:2]), far *  torch.arctan(rays_d[...,1:2])
 
     rays = torch.cat([rays_o, rays_d, near, far], -1)
     # save_tensor_to_npz(rays,"rays_all_info")
@@ -143,13 +147,13 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
 
 def render_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0):
 
-    H, W, focal = hwf
+    H, W,  = hwf
 
-    if render_factor!=0:
-        # Render downsampled for speed
-        H = H//render_factor
-        W = W//render_factor
-        focal = focal/render_factor
+    # if render_factor!=0:
+    #     # Render downsampled for speed
+    #     H = H//render_factor
+    #     W = W//render_factor
+    #     focal = focal/render_factor
 
     rgbs = []
     disps = []
@@ -534,7 +538,7 @@ def config_parser():
                         help='frequency of tensorboard image logging')
     parser.add_argument("--i_weights", type=int, default=1000, 
                         help='frequency of weight ckpt saving')
-    parser.add_argument("--i_testset", type=int, default=5000, 
+    parser.add_argument("--i_testset", type=int, default=1000, 
                         help='frequency of testset saving')
     parser.add_argument("--i_video",   type=int, default=5000, 
                         help='frequency of render_poses video saving')
@@ -556,7 +560,6 @@ def train():
 
     parser = config_parser()
     args = parser.parse_args()
-
     # Load data
     K = None
     if args.dataset_type == 'llff':
@@ -592,7 +595,7 @@ def train():
         # print(i_test)
         hwf = poses[0,:3,-1]
         poses = poses[:,:3,:4]
-        print(poses.shape)
+        # print(poses.shape)
         print('Loaded 360', images.shape, render_poses.shape, hwf, args.datadir)
         # if not isinstance(i_test, list):
         #     i_test = [i_test]
@@ -613,8 +616,8 @@ def train():
             far = np.ndarray.max(bds) * 1.
             
         else:
-            near = 2.
-            far = 4.
+            near = 0.
+            far = 2.
         print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'blender':
@@ -657,15 +660,22 @@ def train():
     else:
         print('Unknown dataset type', args.dataset_type, 'exiting')
         return
-
+    
     # Cast intrinsics to right types
-    print("hwf",hwf)
     _, _, focal = hwf
     # H, W, focal = hwf
     H, W,focal = images.shape[1],images.shape[2],1
     H, W = int(H), int(W)
-    hwf = [H, W, focal]
-
+    hwf = [H, W]
+    print("hwf",hwf)
+    import cv2
+    # mask = cv2.imread("./mask.png")
+    # mask.resize(H,W)
+    # mask = mask >=1
+    # mask_2 = np.zeros((H,W,2),dtype=np.int8)
+    # mask_2[:,:,0] = mask
+    # mask_2[:,:,1] = mask
+    # mask_t = torch.Tensor(mask_2).to(device)
     if K is None:
         K = np.array([
             [focal, 0, 0.5*W],
@@ -739,6 +749,7 @@ def train():
         rays_rgb = np.stack([rays_rgb[i] for i in i_train], 0) # train images only
         rays_rgb = np.reshape(rays_rgb, [-1,3,3]) # [(N-1)*H*W, ro+rd+rgb, 3]
         rays_rgb = rays_rgb.astype(np.float32)
+
         print('shuffle rays')
         np.random.shuffle(rays_rgb)
 
@@ -808,11 +819,23 @@ def train():
                     # この状態だとまだ箱を作るだけ．
                     coords = torch.stack(torch.meshgrid(torch.linspace(0, H-1, H), torch.linspace(0, W-1, W)), -1)  # (H, W, 2)
                     # coords = torch.stack(torch.meshgrid(torch.linspace(0, np.sin(H-1), H), torch.linspace(0, np.sin(W-1), W)), -1)  # (H, W, 2)
-                    
-                coords = torch.reshape(coords, [-1,2])  # (H * W, 2)
+                # coords = coords * mask_t
+                coords = torch.reshape(coords, [-1, 2])  # (H * W, 2)
+
+                # ゼロ以外のインデックスを取得
+                non_zero_mask = coords.sum(dim=1) != 0  # 各座標がゼロでないか確認
+                valid_coords = coords[non_zero_mask]  # ゼロ以外の座標を抽出
+
+                # ランダムに選択
+                N_rand = min(N_rand, valid_coords.shape[0])  # 有効な座標がN_rand未満の場合を考慮
+                select_inds = np.random.choice(valid_coords.shape[0], size=[N_rand], replace=False)  # (N_rand,)
+
+                # 選択した座標を取得
+                # coords  = coords[:,:,2]
+                # coords = torch.reshape(coords, [-1,2])  # (H * W, 2)
                 # print('coordes',coords.shape[0],N_rand)
                 #　箱の中からランダムな光線を選択 
-                select_inds = np.random.choice(int(coords.shape[0]), size=[N_rand], replace=False)  # (N_rand,)
+                # select_inds = np.random.choice(int(coords.shape[0]), size=[N_rand], replace=False)  # (N_rand,)
                 # long()はInt64に変換
                 select_coords = coords[select_inds].long()  # (N_rand, 2)
                 rays_o = rays_o[select_coords[:, 0], select_coords[:, 1]]  # (N_rand, 3)
@@ -858,7 +881,7 @@ def train():
         dt = time.time()-time0
         # print(f"Step: {global_step}, Loss: {loss}, Time: {dt}")
         #####           end            #####
-
+        
         # Rest is logging
         if i%args.i_weights==0:
             path = os.path.join(basedir, expname, '{:06d}.tar'.format(i))

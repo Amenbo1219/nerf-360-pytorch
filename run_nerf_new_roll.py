@@ -99,16 +99,15 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
     else:
         # use provided ray batch
         rays_o, rays_d = rays
-
     if use_viewdirs:
         # provide ray directions as input
         viewdirs = rays_d
         if c2w_staticcam is not None:
             # special case to visualize effect of viewdirs
             rays_o, rays_d = get_rays_roll(H, W, K, c2w_staticcam)
+        
         viewdirs = viewdirs / torch.norm(viewdirs, dim=-1, keepdim=True)
         viewdirs = torch.reshape(viewdirs, [-1,3]).float()
-
     sh = rays_d.shape # [..., 3]
     if ndc:
         # for forward facing scenes
@@ -138,13 +137,13 @@ def render(H, W, K, chunk=1024*32, rays=None, c2w=None, ndc=True,
 
 def render_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0):
 
-    H, W, focal = hwf
+    H, W, = hwf
 
-    if render_factor!=0:
-        # Render downsampled for speed
-        H = H//render_factor
-        W = W//render_factor
-        focal = focal/render_factor
+    # if render_factor!=0:
+    #     # Render downsampled for speed
+    #     H = H//render_factor
+    #     W = W//render_factor
+    #     focal = focal/render_factor
 
     rgbs = []
     disps = []
@@ -528,7 +527,7 @@ def config_parser():
                         help='frequency of tensorboard image logging')
     parser.add_argument("--i_weights", type=int, default=1000, 
                         help='frequency of weight ckpt saving')
-    parser.add_argument("--i_testset", type=int, default=5000, 
+    parser.add_argument("--i_testset", type=int, default=1000, 
                         help='frequency of testset saving')
     parser.add_argument("--i_video",   type=int, default=5000, 
                         help='frequency of render_poses video saving')
@@ -586,8 +585,8 @@ def train():
         # print(i_test)
         hwf = poses[0,:3,-1]
         poses = poses[:,:3,:4]
-        print(poses.shape)
-        print('Loaded 360', images.shape, render_poses.shape, hwf, args.datadir)
+        # print(poses.shape)
+        print('Loaded 360', images.shape, render_poses.shape,args.datadir)
         # if not isinstance(i_test, list):
         #     i_test = [i_test]
 
@@ -607,7 +606,7 @@ def train():
         #     far = np.ndarray.max(bds) * 1.
             
         # else:
-        near = 1.
+        near = 0.
         far = 2.
         print('NEAR FAR', near, far)
 
@@ -653,12 +652,12 @@ def train():
         return
 
     # Cast intrinsics to right types
-    print("hwf",hwf)
     _, _, focal = hwf
     # H, W, focal = hwf
     H, W,focal = images.shape[1],images.shape[2],1
     H, W = int(H), int(W)
-    hwf = [H, W, focal]
+    hwf = [H, W]
+    print("hwf",hwf)
 
     if K is None:
         K = np.array([
@@ -748,9 +747,9 @@ def train():
 
     # N_iters = 10000 + 1
 
-    # N_iters = 200000 + 1
+    N_iters = 200000 + 1
     # N_iters = 100000 + 1
-    N_iters = 1000000 + 1
+    # N_iters = 1000000 + 1
 
     print('Begin')
     print('TRAIN views are', i_train)

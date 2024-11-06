@@ -11,4 +11,5 @@ log/*
 out/*
 ex_config/*
 drc_config/*
+configs/*
 dir/*
